@@ -1,5 +1,6 @@
 const express = require('express');
-const { signup, login} = require('../controller/auth');
+const {signup, login} = require('../controller/auth');
+const jwt = require('jsonwebtoken');
 const Member = require('../models/member');
 const bcrypt = require('bcrypt');
 
@@ -35,14 +36,23 @@ router.post('/signup', async (req, res) => {
 
 router.post('/login', async(req, res) =>{
     const{email, password} = req.body;
-    const hash = await bcrypt.hash(password, 12);
     try{
         const exMember = await Member.findOne({where : {email}});
-
         if(exMember){
             const checkPassword = await bcrypt.compare(password, exMember.password);
             if(checkPassword){
-                res.status(200).send('로그인에 성공하셨습니다.');
+                const token = jwt.sign({
+                    email : exMember.email,
+                }, process.env.JWT_SECRET,{
+                    expiresIn : '5m', // 유효기간
+                    issuer : 'jojunhee', // 발급자
+                });
+                // 응답 헤더에 토큰 추가
+                res.header('Authorization', `Bearer ${token}`);
+                return res.json({
+                    status : 200,
+                    message : '로그인에 성공하셨습니다.',
+                })
             } 
             else{
                 res.status(400).send('로그인에 실패하셨습니다.');

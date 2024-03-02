@@ -22,7 +22,7 @@ router.post('/', async(req, res) =>{
             email : exMember.email,
             password : exMember.password,
         }, process.env.JWT_SECRET,{
-            expiresIn : '1m', // 유효기간
+            expiresIn : '5m', // 유효기간
             issuer : 'jojunhee', // 발급자
         });
         return res.json({
