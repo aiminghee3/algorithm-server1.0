@@ -1,12 +1,13 @@
 const express = require('express');
 const Post = require('../models/post');
+const { verifyToken } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
 
-router.post('/store', async (req, res) =>{
+router.post('/store', verifyToken, async (req, res) =>{
     const {title, sex, city, content, img_link} = req.body;
-    const memberId = 4
+    const memberId = req.decoded.memberId;
     try{
         await Post.create({
             memberId,

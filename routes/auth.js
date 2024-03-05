@@ -42,16 +42,21 @@ router.post('/login', async(req, res) =>{
             const checkPassword = await bcrypt.compare(password, exMember.password);
             if(checkPassword){
                 const token = jwt.sign({
+                    memberId : exMember.id,
                     email : exMember.email,
                 }, process.env.JWT_SECRET,{
                     expiresIn : '5m', // 유효기간
                     issuer : 'jojunhee', // 발급자
                 });
                 // 응답 헤더에 토큰 추가
-                res.header('Authorization', `Bearer ${token}`);
+                //res.header('Authorization', `Bearer ${token}`);
+
+                // 쿠키에 토큰 추가, httpOnly와 secure옵션으로 보안강화해야함
+                res.cookie("token" , token);
                 return res.json({
                     status : 200,
                     message : '로그인에 성공하셨습니다.',
+                    token : token
                 })
             } 
             else{
