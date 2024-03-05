@@ -39,10 +39,12 @@ app.use(cookieParser()) // 쿠키 확인
 
 // 라우터 모음
 const authRouter = require('./routes/auth');
+const postRouter = require('./routes/post');
 const tokenRouter = require('./routes/tokenTest');
 
 // 라우터 등록
 app.use('/auth', authRouter);
+app.use('/post', postRouter);
 app.use('/token', tokenRouter);
 
 app.listen(app.get('port'), ()=>{
