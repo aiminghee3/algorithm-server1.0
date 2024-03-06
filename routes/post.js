@@ -6,16 +6,16 @@ const router = express.Router();
 
 
 router.post('/store', verifyToken, async (req, res) =>{
-    const {title, sex, city, content, img_link} = req.body;
+    const {title, problem_number, problem_link, rate, content} = req.body;
     const memberId = req.decoded.memberId;
     try{
         await Post.create({
             memberId,
             title,
-            sex,
-            city,
-            content,
-            img_link
+            problem_number,
+            problem_link,
+            rate,
+            content
         })
         return res.json({
             status : 200,
