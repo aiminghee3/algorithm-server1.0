@@ -45,7 +45,7 @@ router.post('/login', async(req, res) =>{
                     memberId : exMember.id,
                     email : exMember.email,
                 }, process.env.JWT_SECRET,{
-                    expiresIn : '5m', // 유효기간
+                    expiresIn : '1h', // 유효기간
                     issuer : 'jojunhee', // 발급자
                 });
                 // 응답 헤더에 토큰 추가
