@@ -1,5 +1,5 @@
 const express = require('express');
-const {Member, Post} = require('../models');
+const {Member, Post, Hashtag} = require('../models');
 const { verifyToken } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -45,10 +45,10 @@ router.get('/get/all', async(req, res) =>{
         })
     }
 })
-
+// 게시글 삭제
 router.delete('/delete/:postId', async(req, res) =>{
     const postId = req.params.postId;
-    
+
     try{
         const deletedPost = await Post.destroy({
             where: { id: postId },
@@ -67,10 +67,11 @@ router.delete('/delete/:postId', async(req, res) =>{
 })
 //게시글 저장
 router.post('/store', verifyToken, async (req, res) =>{
-    const {title, problem_number, problem_link, rate, content} = req.body;
+    const {title, problem_number, problem_link, rate, content, hashtags} = req.body;
+
     const memberId = req.decoded.memberId;
     try{
-        await Post.create({
+        const post = await Post.create({
             memberId,
             title,
             problem_number,
@@ -78,6 +79,18 @@ router.post('/store', verifyToken, async (req, res) =>{
             rate,
             content
         })
+
+        if(hashtags){
+            const result = await Promise.all(
+                hashtags.map(tag =>{
+                    return Hashtag.findOrCreate({
+                        where : {name : tag}
+                    });
+                })
+            );
+            await post.addHashtags(result.map(r => r[0]));
+        }
+
         return res.json({
             status : 200,
             message : '게시글을 작성하였습니다.',
