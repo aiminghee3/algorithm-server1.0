@@ -1,5 +1,6 @@
 const express = require('express');
 const {signup, login} = require('../controller/auth');
+const { verifyToken } = require('../middlewares/authMiddleware');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const Member = require('../models/member');
@@ -56,11 +57,12 @@ router.post('/login', async(req, res) =>{
                 return res.json({
                     status : 200,
                     message : '로그인에 성공하셨습니다.',
-                    token : token
+                    token : token,
+                    id : exMember.id
                 })
             } 
             else{
-                res.status(400).send('로그인에 실패하셨습니다.');
+                return res.status(400).send('로그인에 실패하셨습니다.');
             }
     }
     }
@@ -69,4 +71,7 @@ router.post('/login', async(req, res) =>{
     }
 })
 
+router.get('/verify', verifyToken, async(req, res) => {
+    res.json({ loggedIn: true });
+})
 module.exports = router;
