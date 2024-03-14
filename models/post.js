@@ -19,6 +19,8 @@ class Post extends Sequelize.Model {
         rate: Sequelize.INTEGER,
         content: Sequelize.TEXT,
         alarm : Sequelize.DATE
+        // TODO : soft delete 
+        // delete : Sequelize.BOOLEAN (default : false, -> update: default : true)
       }, {
         sequelize,
         modelName: 'Post',

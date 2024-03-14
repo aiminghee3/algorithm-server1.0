@@ -9,6 +9,7 @@ const cors = require('cors');
 
 const app = express();
 
+// TODO : Joi
 app.set('port', process.env.PORT || 8080);
 
 dotenv.config();
@@ -27,6 +28,7 @@ const corsOptions = {
   origin: 'http://localhost:3000',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // 인증 정보를 포함하려면 true로 설정
+  Headers: ["Content-type", "Authorization"],
   optionsSuccessStatus: 204,
 };
 

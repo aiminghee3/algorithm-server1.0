@@ -13,7 +13,7 @@ const router = express.Router();
 // 회원가입 /auth/signup
 //router.post('/signup', signup);
 
-router.post('/signup', async (req, res) => {
+router.post('/signup', async (req, res) => { 
     const {email, password} = req.body;
     try{
         const exMember = await Member.findOne({where : {email}});
@@ -34,7 +34,7 @@ router.post('/signup', async (req, res) => {
         //return next(error);
     }
 })
-
+// TODO : passport-local, -jwt -> (전략) local-> id,password, jwt, jwt-refresh
 router.post('/login', async(req, res) =>{
     const{email, password} = req.body;
     try{

@@ -2,9 +2,12 @@ const express = require('express');
 const {Member, Post, Hashtag} = require('../models');
 const { verifyToken } = require('../middlewares/authMiddleware');
 const { scheduleJob } = require('node-schedule');
+const FCM = require('fcm-node');
+const serverKey = process.env.FCM_KEY;
 
 const router = express.Router();
 
+const fcm = new FCM(serverKey);
 
 // 회원별 게시글 조회
 router.get('/:memberId', verifyToken, async(req, res) =>{
@@ -42,6 +45,7 @@ router.get('/:memberId', verifyToken, async(req, res) =>{
 //전체 게시글 조회
 router.get('/get/all', async(req, res) =>{
     try{
+        // TODO : pagination ?skip=1&take=15 
         const postList = await Post.findAll({
             include : [
                 {
@@ -73,6 +77,7 @@ router.delete('/delete/:postId', async(req, res) =>{
     const postId = req.params.postId;
 
     try{
+        // TODO : soft delete 
         const deletedPost = await Post.destroy({
             where: { id: postId },
         });
@@ -91,7 +96,9 @@ router.delete('/delete/:postId', async(req, res) =>{
 
 //게시글 저장
 router.post('/store', verifyToken, async (req, res) =>{
-    const {title, problem_number, problem_link, rate, content, hashtags, alarm} = req.body;
+    // store.dto.ts => export class StoreDto 
+    // (req: StoreDto, res: Any) => {} construct
+    const {title, problem_number, problem_link, rate, content, hashtags, alarm, token} = req.body;
 
     const memberId = req.decoded.memberId;
     try{
@@ -119,11 +126,28 @@ router.post('/store', verifyToken, async (req, res) =>{
         if(alarm){
             const [year, month, day] = alarm.split('-');
             var date = new Date(year, month, day, 7, 0, 0);
+            console.log(date)
             
-            var job = scheduleJob(date, function(){
-                console.log('여기에 알림관련 코드 작성하면 되지 않을까');
+            
+            scheduleJob(date, function(){
+                const message = {
+                    to: token,
+                    notification: {
+                      title: '문제 복습 알림',
+                      body: `오늘은 ${problem_number}번 문제 복습하는 날입니다.`
+                    }
+                  };
+                  
+                fcm.send(message, (err, response) => {
+                    if (err) {
+                        console.log('Error: ', err);
+                    } else {
+                        console.log('Response: ', response);
+                    }
+                });
             })
         }
+
         return res.json({
             status : 200,
             message : '게시글을 작성하였습니다.',
