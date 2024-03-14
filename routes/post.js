@@ -1,6 +1,7 @@
 const express = require('express');
 const {Member, Post, Hashtag} = require('../models');
 const { verifyToken } = require('../middlewares/authMiddleware');
+const { scheduleJob } = require('node-schedule');
 
 const router = express.Router();
 
@@ -12,7 +13,17 @@ router.get('/:memberId', verifyToken, async(req, res) =>{
         const postList = await Post.findAll({
             where : {
                 memberId : memberId
-            }
+            },
+            include : [
+                {
+                    model : Hashtag,
+                    attribute : ['name'],
+                },
+                {
+                    model: Member, // Member 모델과의 연결
+                    attributes: ['email'], // 가져오고자 하는 Member 모델의 속성 지정
+                },
+            ] 
         })
         if(!postList){
             return res.status(404).json({error : '게시글을 찾을 수 없습니다.'});
@@ -80,7 +91,7 @@ router.delete('/delete/:postId', async(req, res) =>{
 
 //게시글 저장
 router.post('/store', verifyToken, async (req, res) =>{
-    const {title, problem_number, problem_link, rate, content, hashtags} = req.body;
+    const {title, problem_number, problem_link, rate, content, hashtags, alarm} = req.body;
 
     const memberId = req.decoded.memberId;
     try{
@@ -90,7 +101,8 @@ router.post('/store', verifyToken, async (req, res) =>{
             problem_number,
             problem_link,
             rate,
-            content
+            content,
+            alarm
         })
 
         if(hashtags){
@@ -104,6 +116,14 @@ router.post('/store', verifyToken, async (req, res) =>{
             await post.addHashtags(result.map(r => r[0]));
         }
 
+        if(alarm){
+            const [year, month, day] = alarm.split('-');
+            var date = new Date(year, month, day, 7, 0, 0);
+            
+            var job = scheduleJob(date, function(){
+                console.log('여기에 알림관련 코드 작성하면 되지 않을까');
+            })
+        }
         return res.json({
             status : 200,
             message : '게시글을 작성하였습니다.',
@@ -127,26 +147,40 @@ router.put('/update/:postId', async(req, res) =>{
 
         const updateData = {
             title: title || updatePost.title, // 새로운 값이 주어진 경우에만 업데이트, 그렇지 않으면 현재 값 유지
-            problem_number: problem_number || updatePost.problem_number, // 새로운 값이 주어진 경우에만 업데이트, 그렇지 않으면 현재 값 유지
-            problem_link: problem_link || updatePost.problem_link, // 새로운 값이 주어진 경우에만 업데이트, 그렇지 않으면 현재 값 유지
-            rate: rate || updatePost.rate, // 새로운 값이 주어진 경우에만 업데이트, 그렇지 않으면 현재 값 유지
-            content: content || updatePost.content, // 새로운 값이 주어진 경우에만 업데이트, 그렇지 않으면 현재 값 유지
-            hashtags: hashtags || updatePost.hashtags, // 새로운 값이 주어진 경우에만 업데이트, 그렇지 않으면 현재 값 유지
+            problem_number: problem_number || updatePost.problem_number,
+            problem_link: problem_link || updatePost.problem_link, 
+            rate: rate || updatePost.rate, 
+            content: content || updatePost.content,
+            hashtags: hashtags || updatePost.hashtags,
         }
-        console.log(updatePost)
+
+        if(hashtags){ // 해시태그 업데이트
+            const newHashtags = await Promise.all(
+                hashtags.map((tag) => {
+                  return Hashtag.findOrCreate({
+                    where: { name: tag },
+                  });
+                })
+              );
+            
+            // 기존 포스트의 모든 해시태그 가져오기
+            const existingHashtags = await updatePost.getHashtags();
+        
+            // 기존 해시태그 중에서 새로운 해시태그에 없는 것들 삭제
+            await Promise.all(
+                existingHashtags.map(async (existingTag) => {
+                    const tagToRemove = newHashtags.find((newTag) => newTag[0].name === existingTag.name);
+                    if (!tagToRemove) {
+                        await updatePost.removeHashtag(existingTag);
+                    }
+                })
+            );
+
+            await updatePost.addHashtags(newHashtags.map((newTag) => newTag[0]));
+        }
+
         if (updatePost) {
             await updatePost.update(updateData); // 게시글 업데이트
-      
-            if(hashtags){ // 해시태그 업데이트
-                const result = await Promise.all(
-                    hashtags.map(tag =>{
-                        return Hashtag.findOrCreate({
-                            where : {name : tag}
-                        });
-                    })
-                );
-                await updatePost.addHashtags(result.map(r => r[0]));
-            }
 
             return res.status(200).json({ message: '정상적으로 업데이트되었습니다..' });
           } else {

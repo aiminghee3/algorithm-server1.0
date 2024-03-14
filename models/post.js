@@ -17,7 +17,8 @@ class Post extends Sequelize.Model {
         problem_number: Sequelize.INTEGER,
         problem_link: Sequelize.STRING,
         rate: Sequelize.INTEGER,
-        content: Sequelize.TEXT
+        content: Sequelize.TEXT,
+        alarm : Sequelize.DATE
       }, {
         sequelize,
         modelName: 'Post',
@@ -25,7 +26,7 @@ class Post extends Sequelize.Model {
         charset: 'utf8',
         collate: 'utf8_general_ci',
       });
-  }
+  }blo
   static associate(db) {
     db.Post.belongsTo(db.Member);
     db.Post.belongsToMany(db.Hashtag, {through: 'PostHashtag'});
