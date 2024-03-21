@@ -3,21 +3,21 @@
     "username": "root",
     "password": "00000000",
     "database": "board",
-    "host": "127.0.0.1",
+    "host": "localhost",
     "dialect": "mysql"
   },
   "test": {
     "username": "root",
     "password": null,
     "database": "database_test",
-    "host": "127.0.0.1",
+    "host": "host.docker.internal",
     "dialect": "mysql"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "database_production",
-    "host": "127.0.0.1",
+    "username": "algo",
+    "password": "Wpsxmfks3135!",
+    "database": "algorithm",
+    "host": "52.78.191.175",
     "dialect": "mysql"
   }
 }

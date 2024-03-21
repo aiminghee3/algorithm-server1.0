@@ -10,7 +10,7 @@ const cors = require('cors');
 const app = express();
 
 // TODO : Joi
-app.set('port', process.env.PORT || 8080);
+app.set('port', process.env.PORT || 8000);
 
 dotenv.config();
 
@@ -39,15 +39,14 @@ app.use(express.json()); // JSON 형식의 body 파싱
 app.use(express.urlencoded({ extended: true })); // URL-encoded 형식의 body 파싱 -> 프론트에서 form형식으로 제출되면 express.json으로 해석불가해서 사용
 app.use(cookieParser()) // 쿠키 확인
 
+
 // 라우터 모음
 const authRouter = require('./routes/auth');
 const postRouter = require('./routes/post');
-const tokenRouter = require('./routes/tokenTest');
 
 // 라우터 등록
 app.use('/auth', authRouter);
 app.use('/post', postRouter);
-app.use('/token', tokenRouter);
 
 app.listen(app.get('port'), ()=>{
     console.log(app.get('port'), '번 포트에서 대기 중');
